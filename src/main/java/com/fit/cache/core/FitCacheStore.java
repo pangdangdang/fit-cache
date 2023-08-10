@@ -61,12 +61,14 @@ public class FitCacheStore {
     /**
      * 设置缓存
      */
-    public static void set(String key, Object value) {
+    public static boolean set(String key, Object value) {
         Object object = CaffeineCacheHolder.getFitCache().getIfPresent(key);
-        if (object == null) {
-            return;
+        Object lru = CaffeineCacheHolder.getLruCache().get(key);
+        if (object == null && lru == null) {
+            return false;
         }
         CaffeineCacheHolder.getFitCache().put(key, value);
+        return true;
     }
 //
 //    private static ExecutorService threadPoolExecutor = new ThreadPoolExecutor(1,

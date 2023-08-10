@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 import java.util.function.Function;
 
 /**
- * key的新增、删除处理
+ * key的事件处理
  *
  * @author songhao
  */
@@ -19,12 +19,13 @@ public class KeyListener implements IKeyListener {
     @Override
     public void newKey(String key) {
         SlidingWindow slidingWindow = checkWindow(key);
+        // 被访问，进入最近访问列表
         CaffeineCacheHolder.getLruCache().put(key, System.currentTimeMillis());
-        //看看hot没
-        boolean hot = slidingWindow.addCount(1);
+        //看看达到匹配规则没有
+        boolean fit = slidingWindow.addCount(1);
 
         CaffeineCacheHolder.getWindowCache().put(key, slidingWindow);
-        if (hot && CaffeineCacheHolder.getFitCache().getIfPresent(key) == null) {
+        if (fit && CaffeineCacheHolder.getFitCache().getIfPresent(key) == null) {
             //数据变热，适合缓存
             CaffeineCacheHolder.getFitCache().put(key, System.currentTimeMillis());
         }

@@ -35,13 +35,14 @@ public class LruCache {
     public Object get(String key) {
         Node node = cache.get(key);
         if (node != null) {
+            // l列表里面有就转到头部
             moveToHead(node);
             return node.value;
         }
         return null;
     }
 
-    public void put(String key, Object value) {
+    public synchronized void put(String key, Object value) {
         Node node = cache.get(key);
         if (node != null) {
             node.value = value;
@@ -51,30 +52,31 @@ public class LruCache {
             cache.put(key, node);
             addToHead(node);
             if (cache.size() > capacity) {
+                // 超过容量就删除尾部节点
                 Node removedNode = removeTail();
                 cache.remove(removedNode.key);
             }
         }
     }
 
-    private void moveToHead(Node node) {
+    private synchronized void moveToHead(Node node) {
         removeNode(node);
         addToHead(node);
     }
 
-    private void addToHead(Node node) {
+    private synchronized void addToHead(Node node) {
         node.prev = head;
         node.next = head.next;
         head.next.prev = node;
         head.next = node;
     }
 
-    private void removeNode(Node node) {
+    private synchronized void removeNode(Node node) {
         node.prev.next = node.next;
         node.next.prev = node.prev;
     }
 
-    private Node removeTail() {
+    private synchronized Node removeTail() {
         Node removedNode = tail.prev;
         removeNode(removedNode);
         return removedNode;

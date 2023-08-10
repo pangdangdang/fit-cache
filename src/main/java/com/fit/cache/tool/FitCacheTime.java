@@ -6,7 +6,7 @@ package com.fit.cache.tool;
 public class FitCacheTime {
 
     /**
-     * 加权求和算法，计算数据的评分
+     * 加权递减求和算法，计算数据的评分
      *
      * @param frequency
      * @param lastTime
@@ -14,7 +14,7 @@ public class FitCacheTime {
      */
     private static double calculateScore(double frequency, long lastTime) {
         // 根据业务需求和数据的重要性，给访问频率和最近访问时间分配不同的权重
-        // 这里从qconfig拿
+        // 这里从配置中心拿
         double frequencyWeight = 0.7;
         double timeWeight = 0.3;
         // 计算访问频率和最近访问时间的值

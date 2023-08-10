@@ -1,14 +1,9 @@
 package com.fit.cache.tool;
 
 
-
-import java.util.concurrent.BrokenBarrierException;
-import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * 滑动窗口。该窗口同样的key都是单线程计算。
- *
  * @author songhao
  */
 public class SlidingWindow {
@@ -108,15 +103,11 @@ public class SlidingWindow {
     public synchronized boolean addCount(int count) {
         //当前自己所在的位置，是哪个小时间窗
         int index = locationIndex();
-        //然后清空自己前面windowSize到2*windowSize之间的数据格的数据
-        //譬如1秒分4个窗口，那么数组共计8个窗口
-        //当前index为5时，就清空6、7、8、1。然后把2、3、4、5的加起来就是该窗口内的总和
         clearFromIndex(index);
 
         int sum = 0;
         // 在当前时间片里继续+1
         sum += timeSlices[index].addAndGet(count);
-        //加上前面几个时间片
         for (int i = 1; i < windowSize; i++) {
             sum += timeSlices[(index - i + timeSliceSize) % timeSliceSize].get();
         }
