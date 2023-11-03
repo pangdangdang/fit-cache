@@ -36,7 +36,6 @@ public class KeyRule {
         return prefix;
     }
 
-
     public int getInterval() {
         return interval;
     }
@@ -44,7 +43,5 @@ public class KeyRule {
     public int getThreshold() {
         return threshold;
     }
-
-
 
 }

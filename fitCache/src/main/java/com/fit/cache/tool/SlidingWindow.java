@@ -1,12 +1,21 @@
 package com.fit.cache.tool;
 
+import com.fit.cache.keylistener.KeyListener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
+ * 滑动窗口。该窗口同样的key都是单线程计算。
+ *
  * @author songhao
  */
 public class SlidingWindow {
+
+    private static final Logger LOG = LoggerFactory.getLogger(KeyListener.class);
+    private static final String TITLE = "SlidingWindow";
+
     /**
      * 循环队列，就是装多个窗口用，该数量是windowSize的2倍
      */
@@ -36,13 +45,12 @@ public class SlidingWindow {
      */
     private long lastAddTimestamp;
 
-
     public SlidingWindow(int duration, int threshold) {
-        //超过10分钟的按10分钟
+        // 超过10分钟的按10分钟
         if (duration > 600) {
             duration = 600;
         }
-        //要求5秒内探测出来的，
+        // 要求5秒内探测出来的，
         if (duration <= 5) {
             this.windowSize = 5;
             this.timeMillisPerSlice = duration * 200;
@@ -71,8 +79,9 @@ public class SlidingWindow {
      * 初始化
      */
     private void reset() {
+        LOG.info(TITLE, "reset");
         beginTimestamp = System.currentTimeMillis();
-        //窗口个数
+        // 窗口个数
         AtomicLong[] localTimeSlices = new AtomicLong[timeSliceSize];
         for (int i = 0; i < timeSliceSize; i++) {
             localTimeSlices[i] = new AtomicLong(0);
@@ -85,15 +94,16 @@ public class SlidingWindow {
      */
     private int locationIndex() {
         long now = System.currentTimeMillis();
-        //如果当前的key已经超出一整个时间片了，那么就直接初始化就行了，不用去计算了
+        // 如果当前的key已经超出一整个时间片了，那么就直接初始化就行了，不用去计算了
         if (now - lastAddTimestamp > timeMillisPerSlice * windowSize) {
             reset();
         }
 
-        int index = (int) (((now - beginTimestamp) / timeMillisPerSlice) % timeSliceSize);
+        int index = (int)(((now - beginTimestamp) / timeMillisPerSlice) % timeSliceSize);
         if (index < 0) {
             return 0;
         }
+        LOG.info(TITLE, "index:{}", index);
         return index;
     }
 
@@ -101,25 +111,29 @@ public class SlidingWindow {
      * 增加count个数量
      */
     public synchronized boolean addCount(int count) {
-        //当前自己所在的位置，是哪个小时间窗
+        // 当前自己所在的位置，是哪个小时间窗
         int index = locationIndex();
+        // 然后清空自己前面windowSize到2*windowSize之间的数据格的数据
+        // 譬如1秒分4个窗口，那么数组共计8个窗口
+        // 当前index为5时，就清空6、7、8、1。然后把2、3、4、5的加起来就是该窗口内的总和
         clearFromIndex(index);
 
         int sum = 0;
         // 在当前时间片里继续+1
         sum += timeSlices[index].addAndGet(count);
+        // 加上前面几个时间片
         for (int i = 1; i < windowSize; i++) {
             sum += timeSlices[(index - i + timeSliceSize) % timeSliceSize].get();
         }
 
+        LOG.info(TITLE, "sum:{}", sum);
         lastAddTimestamp = System.currentTimeMillis();
         return sum >= threshold;
     }
 
-
     public int getCount() {
         int sum = 0;
-        //加上前面几个时间片
+        // 加上前面几个时间片
         for (int i = 1; i < windowSize; i++) {
             sum += timeSlices[i].get();
         }
@@ -128,6 +142,7 @@ public class SlidingWindow {
 
     private void clearFromIndex(int index) {
         for (int i = 1; i <= windowSize; i++) {
+            LOG.info(TITLE, "clear i:{}", i);
             int j = index + i;
             if (j >= windowSize * 2) {
                 j -= windowSize * 2;

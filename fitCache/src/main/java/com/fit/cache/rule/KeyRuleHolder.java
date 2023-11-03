@@ -1,9 +1,15 @@
 package com.fit.cache.rule;
 
-import org.springframework.util.StringUtils;
-
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fit.cache.tool.FitCacheStaticConfig;
 
 /**
  * 保存key的规则
@@ -12,58 +18,40 @@ import java.util.List;
  */
 public class KeyRuleHolder {
 
-    /**
-     * todo 这里要替换成配置中心取
-     */
-    public static final List<KeyRule> KEY_RULES = new ArrayList<>();
+    private static final Logger LOG = LoggerFactory.getLogger(KeyRuleHolder.class);
+    private static final String TITLE = "KeyRuleHolder";
 
+    private static AtomicBoolean hasKeyRule = new AtomicBoolean(false);
+    private static List<KeyRule> keyRuleList = new ArrayList<>();
 
-    /**
-     * 判断该key命中了哪个rule
-     */
-    public static String rule(String key) {
-        KeyRule keyRule = findRule(key);
-        if (keyRule != null) {
-            return keyRule.getKey();
+    private static List<KeyRule> keyRules() {
+        try {
+            if (hasKeyRule.get()) {
+                return keyRuleList;
+            }
+            String value = FitCacheStaticConfig.getStaticConfig("keyRule");
+            ObjectMapper objectMapper = new ObjectMapper();
+            keyRuleList = objectMapper.readValue(value, new TypeReference<List<KeyRule>>() {});
+            return keyRuleList;
+        } catch (Exception e) {
+            LOG.error(TITLE, "KeyRuleHolder keyRules fail:{}", e);
+            return keyRuleList;
         }
-        return "";
     }
 
     public static KeyRule findRule(String key) {
-        KeyRule prefix = null;
-        KeyRule common = null;
-        for (KeyRule keyRule : KEY_RULES) {
+        for (KeyRule keyRule : keyRules()) {
             if (key.equals(keyRule.getKey())) {
                 return keyRule;
             }
             if ((keyRule.isPrefix() && key.startsWith(keyRule.getKey()))) {
-                prefix = keyRule;
+                return keyRule;
             }
             if ("*".equals(keyRule.getKey())) {
-                common = keyRule;
+                return keyRule;
             }
         }
-        if (prefix != null) {
-            return prefix;
-        }
-        return common;
-    }
-
-    /**
-     * 判断key是否在配置的要探测的规则内
-     */
-    public static boolean isKeyInRule(String key) {
-        if (StringUtils.isEmpty(key)) {
-            return false;
-        }
-        //遍历该app的所有rule，找到与key匹配的rule。
-        for (KeyRule keyRule : KEY_RULES) {
-            if ("*".equals(keyRule.getKey()) || key.equals(keyRule.getKey()) ||
-                    (keyRule.isPrefix() && key.startsWith(keyRule.getKey()))) {
-                return true;
-            }
-        }
-        return false;
+        return null;
     }
 
 }
