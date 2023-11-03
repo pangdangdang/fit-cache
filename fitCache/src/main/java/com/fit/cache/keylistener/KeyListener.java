@@ -27,7 +27,6 @@ public class KeyListener implements IKeyListener {
             return;
         }
         CacheHolder.setLruCache(key, System.currentTimeMillis());
-        // 看看hot没
         boolean hot = slidingWindow.addCount(1);
         LOG.info(TITLE, "key:{},hot:{}", key, hot);
         CacheHolder.setWindowCache(key, slidingWindow);
