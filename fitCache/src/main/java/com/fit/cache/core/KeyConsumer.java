@@ -1,11 +1,12 @@
 package com.fit.cache.core;
 
-import com.fit.cache.config.DispatcherConfig;
-import com.fit.cache.keylistener.IKeyListener;
+import javax.annotation.Resource;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Resource;
+import com.fit.cache.config.DispatcherConfig;
+import com.fit.cache.keylistener.IKeyListener;
 
 /**
  * @author songhao
@@ -13,7 +14,7 @@ import javax.annotation.Resource;
 public class KeyConsumer {
 
     private static final Logger LOG = LoggerFactory.getLogger(FitCacheStore.class);
-private static final String TITLE = "KeyConsumer";
+    private static final String TITLE = "KeyConsumer";
     @Resource
     private IKeyListener iKeyListener;
 

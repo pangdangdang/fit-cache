@@ -1,12 +1,13 @@
 package com.fit.cache.keylistener;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
+
 import com.fit.cache.cache.CacheHolder;
 import com.fit.cache.rule.KeyRule;
 import com.fit.cache.rule.KeyRuleHolder;
 import com.fit.cache.tool.SlidingWindow;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
 
 /**
  * key的监听处理

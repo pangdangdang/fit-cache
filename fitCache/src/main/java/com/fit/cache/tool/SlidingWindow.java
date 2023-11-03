@@ -1,10 +1,11 @@
 package com.fit.cache.tool;
 
-import com.fit.cache.keylistener.KeyListener;
+import java.util.concurrent.atomic.AtomicLong;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.atomic.AtomicLong;
+import com.fit.cache.keylistener.KeyListener;
 
 /**
  * 滑动窗口。该窗口同样的key都是单线程计算。
